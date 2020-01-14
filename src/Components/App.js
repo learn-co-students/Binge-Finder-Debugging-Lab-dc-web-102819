@@ -14,29 +14,49 @@ class App extends Component {
     selectedShow: "",
     episodes: [],
     filterByRating: "",
+    scrollIterant: 1,
+    scrollPosition: 0,
+    allowFetch: true
   }
 
   componentDidMount = () => {
-    Adapter.getShows().then(shows => this.setState({shows}))
+    Adapter.getShows(0).then(shows => this.setState({shows}))
   }
 
   componentDidUpdate = () => {
     window.scrollTo(0, 0)
   }
 
-  handleSearch (e){
+  handleScroll = (e) => {
+    if (e.target.scrollHeight < e.target.scrollTop + 1000) {
+      if (this.state.allowFetch) {
+        this.setState({allowFetch: false})
+        Adapter.getShows(this.state.scrollIterant).then(newShows => {
+          this.setState((prevState) => { 
+            return {
+              allowFetch: true,
+              scrollIterant: prevState.scrollIterant + 1,
+              shows: prevState.shows.concat(newShows)
+            }
+          })
+        })
+      }
+    }
+  }
+
+  handleSearch = (e) => {
     this.setState({ searchTerm: e.target.value.toLowerCase() })
   }
 
   handleFilter = (e) => {
-    e.target.value === "No Filter" ? this.setState({ filterRating:"" }) : this.setState({ filterRating: e.target.value})
+    e.target.value === "No Filter" ? this.setState({ filterByRating: "" }) : this.setState({ filterByRating: e.target.value})
   }
 
   selectShow = (show) => {
     Adapter.getShowEpisodes(show.id)
     .then((episodes) => this.setState({
       selectedShow: show,
-      episodes
+      episodes: episodes
     }))
   }
 
@@ -52,14 +72,14 @@ class App extends Component {
 
   render (){
     return (
-      <div>
+      <div id="hi">
         <Nav handleFilter={this.handleFilter} handleSearch={this.handleSearch} searchTerm={this.state.searchTerm}/>
         <Grid celled>
           <Grid.Column width={5}>
-            {!!this.state.selectedShow ? <SelectedShowContainer selectedShow={this.state.selectedShow} allEpisodes={this.state.episodes}/> : <div/>}
+            {!!this.state.selectedShow ? <SelectedShowContainer selectedShow={this.state.selectedShow} episodes={this.state.episodes}/> : <div/>}
           </Grid.Column>
           <Grid.Column width={11}>
-            <TVShowList shows={this.displayShows()} selectShow={this.selectShow} searchTerm={this.state.searchTerm}/>
+            <TVShowList shows={this.displayShows()} selectShow={this.selectShow} searchTerm={this.state.searchTerm} handleScroll={this.handleScroll} />
           </Grid.Column>
         </Grid>
       </div>
