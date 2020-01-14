@@ -1,12 +1,13 @@
 import React from 'react';
 
-const tvShow = () => {
+const TVShow = (props) => {
+  // debugger
   return (
-    <div>
+    <div id={"show-" + props.show.id}>
       <br/>
-      <img src={props.image.medium} onClick={props.selectShow} alt=""/>
+      {!!props.show.image ? <img src={props.show.image.medium} onClick={(e) => props.selectShow(props.show)} alt=""/> : <div onClick={(e) => props.selectShow(props.show)}>No Image</div>}
     </div>
   );
 }
 
-export default tvShow;
+export default TVShow;
